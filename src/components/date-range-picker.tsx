@@ -21,9 +21,11 @@ import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerProps {
   onRangeChange: (start: string, end: string) => void;
+  defaultPreset?: "week" | "month" | "all";
+  showAllTime?: boolean;
 }
 
-export function DateRangePicker({ onRangeChange }: DateRangePickerProps) {
+export function DateRangePicker({ onRangeChange, defaultPreset = "week", showAllTime = false }: DateRangePickerProps) {
   const [range, setRange] = useState<DateRange | undefined>();
   const [activePreset, setActivePreset] = useState<string>("");
   const initialized = useRef(false);
@@ -31,6 +33,12 @@ export function DateRangePicker({ onRangeChange }: DateRangePickerProps) {
   const applyPreset = (preset: string) => {
     const now = new Date();
     let start: Date, end: Date;
+    if (preset === "all") {
+      setRange(undefined);
+      setActivePreset("all");
+      onRangeChange("2008-01-01", format(now, "yyyy-MM-dd"));
+      return;
+    }
     if (preset === "week") {
       start = startOfWeek(now, { weekStartsOn: 1 });
       end = endOfWeek(now, { weekStartsOn: 1 });
@@ -46,7 +54,7 @@ export function DateRangePicker({ onRangeChange }: DateRangePickerProps) {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      applyPreset("week");
+      applyPreset(defaultPreset);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -62,7 +70,9 @@ export function DateRangePicker({ onRangeChange }: DateRangePickerProps) {
     }
   };
 
-  const label = range?.from
+  const label = activePreset === "all"
+    ? "All Time"
+    : range?.from
     ? range.to
       ? `${format(range.from, "MMM d")} - ${format(range.to, "MMM d, yyyy")}`
       : format(range.from, "MMM d, yyyy")
@@ -84,6 +94,15 @@ export function DateRangePicker({ onRangeChange }: DateRangePickerProps) {
       >
         This Month
       </Button>
+      {showAllTime && (
+        <Button
+          variant={activePreset === "all" ? "default" : "outline"}
+          size="sm"
+          onClick={() => applyPreset("all")}
+        >
+          All Time
+        </Button>
+      )}
       <Popover>
         <PopoverTrigger asChild>
           <Button

@@ -2,7 +2,7 @@
 
 Open source contribution dashboard. Shows merged and reviewed PR counts per repo.
 
-![screenshot](assets/screenshot.png)
+![dark](assets/gitx-dark.png)
 
 ## Setup
 

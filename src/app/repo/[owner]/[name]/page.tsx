@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { ArrowLeft, GitMerge, Eye, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { PullRequest } from "@/lib/github";
+import { Card, CardContent } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/date-range-picker";
+import type { PullRequest, RepoStats } from "@/lib/github";
 
 export default function RepoDetailPage({
   params,
@@ -15,34 +17,41 @@ export default function RepoDetailPage({
   const { owner, name } = use(params);
   const repo = `${owner}/${name}`;
 
+  const [allTimeStats, setAllTimeStats] = useState<RepoStats | null>(null);
   const [mergedPRs, setMergedPRs] = useState<PullRequest[]>([]);
   const [reviewedPRs, setReviewedPRs] = useState<PullRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingPRs, setLoadingPRs] = useState(false);
 
+  // Fetch all-time stats on mount
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const start = searchParams.get("start");
-    const end = searchParams.get("end");
-    if (!start || !end) {
-      setLoading(false);
-      return;
+    async function fetchAllTime() {
+      const now = new Date().toISOString().split("T")[0];
+      const res = await fetch(
+        `/api/stats?repos=${repo}&start=2008-01-01&end=${now}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) setAllTimeStats(data[0]);
+      }
+      setLoadingStats(false);
     }
+    fetchAllTime();
+  }, [repo]);
 
-    async function fetchPRs() {
+  const handleRangeChange = useCallback(
+    async (start: string, end: string) => {
+      setLoadingPRs(true);
       const [merged, reviewed] = await Promise.all([
-        fetch(
-          `/api/prs?repo=${repo}&start=${start}&end=${end}&type=merged`
-        ).then((r) => r.json()),
-        fetch(
-          `/api/prs?repo=${repo}&start=${start}&end=${end}&type=reviewed`
-        ).then((r) => r.json()),
+        fetch(`/api/prs?repo=${repo}&start=${start}&end=${end}&type=merged`).then((r) => r.json()),
+        fetch(`/api/prs?repo=${repo}&start=${start}&end=${end}&type=reviewed`).then((r) => r.json()),
       ]);
       setMergedPRs(merged);
       setReviewedPRs(reviewed);
-      setLoading(false);
-    }
-    fetchPRs();
-  }, [repo]);
+      setLoadingPRs(false);
+    },
+    [repo]
+  );
 
   return (
     <main className="mx-auto max-w-3xl p-6 space-y-6">
@@ -55,14 +64,47 @@ export default function RepoDetailPage({
         <h1 className="text-2xl font-bold tracking-tight">{repo}</h1>
       </div>
 
-      {loading && (
+      {/* All-time stats */}
+      {loadingStats ? (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading stats...
+        </div>
+      ) : allTimeStats && (
+        <Card>
+          <CardContent className="flex gap-8 pt-6">
+            <div>
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                <GitMerge className="h-3.5 w-3.5" />
+                Total Merged
+              </div>
+              <p className="text-3xl font-bold tracking-tight">{allTimeStats.merged}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                <Eye className="h-3.5 w-3.5" />
+                Total Reviewed
+              </div>
+              <p className="text-3xl font-bold tracking-tight">{allTimeStats.reviewed}</p>
+            </div>
+            <div className="ml-auto self-center">
+              <Badge variant="secondary">All Time</Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Time range picker for PR list */}
+      <DateRangePicker onRangeChange={handleRangeChange} />
+
+      {loadingPRs && (
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           Loading PRs...
         </div>
       )}
 
-      {!loading && (
+      {!loadingPRs && (mergedPRs.length > 0 || reviewedPRs.length > 0) && (
         <div className="space-y-8">
           <PRSection
             title="Merged PRs"

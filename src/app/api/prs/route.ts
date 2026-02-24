@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
 
   const query =
     type === "merged"
-      ? `repo:${repo} author:${CONFIG.username} is:pr is:merged merged:${start}..${end}`
-      : `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged merged:${start}..${end} -author:${CONFIG.username}`;
+      ? `repo:${repo} author:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end}`
+      : `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`;
 
   const prs = await searchPRs(query);
   return NextResponse.json(prs);

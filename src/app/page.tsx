@@ -82,7 +82,7 @@ export default function Home() {
       </div>
 
       <div className="space-y-4">
-        <DateRangePicker onRangeChange={handleRangeChange} />
+        <DateRangePicker onRangeChange={handleRangeChange} showAllTime />
         <AddRepo onAdd={handleAddRepo} />
       </div>
 

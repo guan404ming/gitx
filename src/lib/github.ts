@@ -51,10 +51,10 @@ export async function fetchRepoStats(
 ): Promise<RepoStats> {
   const [merged, reviewed] = await Promise.all([
     searchCount(
-      `repo:${repo} author:${CONFIG.username} is:pr is:merged merged:${start}..${end}`
+      `repo:${repo} author:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end}`
     ),
     searchCount(
-      `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged merged:${start}..${end} -author:${CONFIG.username}`
+      `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`
     ),
   ]);
   return { repo, merged, reviewed };
