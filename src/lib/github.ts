@@ -1,5 +1,12 @@
 import { CONFIG } from "@/lib/config";
 
+const headers: Record<string, string> = {
+  Accept: "application/vnd.github+json",
+};
+if (process.env.GITHUB_TOKEN) {
+  headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
+}
+
 export interface RepoStats {
   repo: string;
   merged: number;
@@ -18,9 +25,12 @@ export interface PullRequest {
 async function searchCount(query: string): Promise<number> {
   const res = await fetch(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&per_page=1`,
-    { next: { revalidate: 300 } }
+    { cache: "no-store", headers }
   );
-  if (!res.ok) return 0;
+  if (!res.ok) {
+    console.warn(`GitHub search failed (${res.status}):`, query);
+    return 0;
+  }
   const data = await res.json();
   return data.total_count ?? 0;
 }
@@ -30,7 +40,7 @@ export async function searchPRs(
 ): Promise<PullRequest[]> {
   const res = await fetch(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&per_page=100&sort=updated&order=desc`,
-    { next: { revalidate: 300 } }
+    { cache: "no-store", headers }
   );
   if (!res.ok) return [];
   const data = await res.json();
