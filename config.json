@@ -3,10 +3,8 @@
   "defaultRepos": [
     "apache/airflow",
     "apache/tvm",
-    "apache/mahout",
     "apache/tvm-ffi",
-    "apache/datafusion-sqlparser-rs",
-    "vllm-project/vllm",
+    "apache/mahout",
     "vllm-project/speculators"
   ]
 }
