@@ -11,16 +11,17 @@ export function useRepos() {
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
+    let saved: string[] = [];
     if (stored) {
       try {
-        setRepos(JSON.parse(stored));
+        saved = JSON.parse(stored);
       } catch {
-        setRepos(CONFIG.defaultRepos);
+        saved = [];
       }
-    } else {
-      setRepos(CONFIG.defaultRepos);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(CONFIG.defaultRepos));
     }
+    const merged = [...new Set([...CONFIG.defaultRepos, ...saved])];
+    setRepos(merged);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
     setReady(true);
   }, []);
 
