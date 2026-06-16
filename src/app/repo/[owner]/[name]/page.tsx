@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
-import { ArrowLeft, GitMerge, Eye, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowLeft, GitMerge, GitPullRequest, Eye, ExternalLink, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,7 @@ export default function RepoDetailPage({
 
   const [allTimeStats, setAllTimeStats] = useState<RepoStats | null>(null);
   const [mergedPRs, setMergedPRs] = useState<PullRequest[]>([]);
+  const [openedPRs, setOpenedPRs] = useState<PullRequest[]>([]);
   const [reviewedPRs, setReviewedPRs] = useState<PullRequest[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingPRs, setLoadingPRs] = useState(false);
@@ -42,11 +43,13 @@ export default function RepoDetailPage({
   const handleRangeChange = useCallback(
     async (start: string, end: string) => {
       setLoadingPRs(true);
-      const [merged, reviewed] = await Promise.all([
+      const [merged, opened, reviewed] = await Promise.all([
         fetch(`/api/prs?repo=${repo}&start=${start}&end=${end}&type=merged`).then((r) => r.json()),
+        fetch(`/api/prs?repo=${repo}&start=${start}&end=${end}&type=opened`).then((r) => r.json()),
         fetch(`/api/prs?repo=${repo}&start=${start}&end=${end}&type=reviewed`).then((r) => r.json()),
       ]);
       setMergedPRs(merged);
+      setOpenedPRs(opened);
       setReviewedPRs(reviewed);
       setLoadingPRs(false);
     },
@@ -72,13 +75,20 @@ export default function RepoDetailPage({
         </div>
       ) : allTimeStats && (
         <Card>
-          <CardContent className="flex gap-8 pt-6">
+          <CardContent className="flex gap-8">
             <div>
               <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                <GitMerge className="h-3.5 w-3.5" />
+                <GitMerge className="h-3.5 w-3.5 text-[#8250df] dark:text-[#a371f7]" />
                 Total Merged
               </div>
               <p className="text-3xl font-bold tracking-tight">{allTimeStats.merged}</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                <GitPullRequest className="h-3.5 w-3.5 text-[#1a7f37] dark:text-[#3fb950]" />
+                Total Opened
+              </div>
+              <p className="text-3xl font-bold tracking-tight">{allTimeStats.opened}</p>
             </div>
             <div>
               <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
@@ -104,20 +114,28 @@ export default function RepoDetailPage({
         </div>
       )}
 
-      {!loadingPRs && (mergedPRs.length > 0 || reviewedPRs.length > 0) && (
-        <div className="space-y-8">
-          <PRSection
-            title="Merged PRs"
-            icon={<GitMerge className="h-4 w-4" />}
-            prs={mergedPRs}
-          />
-          <PRSection
-            title="Reviewed PRs"
-            icon={<Eye className="h-4 w-4" />}
-            prs={reviewedPRs}
-          />
-        </div>
-      )}
+      {!loadingPRs &&
+        (mergedPRs.length > 0 ||
+          openedPRs.length > 0 ||
+          reviewedPRs.length > 0) && (
+          <div className="space-y-8">
+            <PRSection
+              title="Merged PRs"
+              icon={<GitMerge className="h-4 w-4 text-[#8250df] dark:text-[#a371f7]" />}
+              prs={mergedPRs}
+            />
+            <PRSection
+              title="Opened PRs"
+              icon={<GitPullRequest className="h-4 w-4 text-[#1a7f37] dark:text-[#3fb950]" />}
+              prs={openedPRs}
+            />
+            <PRSection
+              title="Reviewed PRs"
+              icon={<Eye className="h-4 w-4" />}
+              prs={reviewedPRs}
+            />
+          </div>
+        )}
     </main>
   );
 }

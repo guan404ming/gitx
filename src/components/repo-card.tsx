@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X, GitMerge, Eye } from "lucide-react";
+import { X, GitMerge, Eye, GitPullRequest } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { RepoStats } from "@/lib/github";
@@ -57,13 +57,20 @@ export function RepoCard({ stat, start, end, onRemove }: RepoCardProps) {
             </Button>
           )}
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-3 gap-4">
           <div>
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              <GitMerge className="h-3.5 w-3.5" />
+              <GitMerge className="h-3.5 w-3.5 text-[#8250df] dark:text-[#a371f7]" />
               Merged
             </div>
             <p className="text-3xl font-bold tracking-tight">{stat.merged}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+              <GitPullRequest className="h-3.5 w-3.5 text-[#1a7f37] dark:text-[#3fb950]" />
+              Opened
+            </div>
+            <p className="text-3xl font-bold tracking-tight">{stat.opened}</p>
           </div>
           <div>
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">

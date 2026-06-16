@@ -3,8 +3,8 @@
   "defaultRepos": [
     "apache/airflow",
     "apache/tvm",
-    "apache/tvm-ffi",
-    "apache/mahout",
-    "vllm-project/speculators"
+    "vllm-project/vllm",
+    "vllm-project/speculators",
+    "NVIDIA/TensorRT-LLM"
   ]
 }

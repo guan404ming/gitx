@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
   const repo = searchParams.get("repo");
   const start = searchParams.get("start");
   const end = searchParams.get("end");
-  const type = searchParams.get("type"); // "merged" | "reviewed"
+  const type = searchParams.get("type"); // "merged" | "reviewed" | "opened"
 
   if (!repo || !start || !end || !type) {
     return NextResponse.json(
@@ -19,7 +19,9 @@ export async function GET(req: NextRequest) {
   const query =
     type === "merged"
       ? `repo:${repo} author:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end}`
-      : `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`;
+      : type === "opened"
+        ? `repo:${repo} author:${CONFIG.username} is:pr created:${start}..${end}`
+        : `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`;
 
   const prs = await searchPRs(query);
   return NextResponse.json(prs);

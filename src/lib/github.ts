@@ -11,6 +11,7 @@ export interface RepoStats {
   repo: string;
   merged: number;
   reviewed: number;
+  opened: number;
 }
 
 export interface PullRequest {
@@ -25,7 +26,7 @@ export interface PullRequest {
 async function searchCount(query: string): Promise<number> {
   const res = await fetch(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&per_page=1`,
-    { cache: "no-store", headers }
+    { next: { revalidate: 300 }, headers }
   );
   if (!res.ok) {
     console.warn(`GitHub search failed (${res.status}):`, query);
@@ -40,7 +41,7 @@ export async function searchPRs(
 ): Promise<PullRequest[]> {
   const res = await fetch(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&per_page=100&sort=updated&order=desc`,
-    { cache: "no-store", headers }
+    { next: { revalidate: 300 }, headers }
   );
   if (!res.ok) return [];
   const data = await res.json();
@@ -59,13 +60,16 @@ export async function fetchRepoStats(
   start: string,
   end: string
 ): Promise<RepoStats> {
-  const [merged, reviewed] = await Promise.all([
+  const [merged, reviewed, opened] = await Promise.all([
     searchCount(
       `repo:${repo} author:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end}`
     ),
     searchCount(
       `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`
     ),
+    searchCount(
+      `repo:${repo} author:${CONFIG.username} is:pr created:${start}..${end}`
+    ),
   ]);
-  return { repo, merged, reviewed };
+  return { repo, merged, reviewed, opened };
 }
