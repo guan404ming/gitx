@@ -68,7 +68,7 @@ export async function fetchRepoStats(
       `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`
     ),
     searchCount(
-      `repo:${repo} author:${CONFIG.username} is:pr created:${start}..${end}`
+      `repo:${repo} author:${CONFIG.username} is:pr -is:merged created:${start}..${end}`
     ),
   ]);
   return { repo, merged, reviewed, opened };

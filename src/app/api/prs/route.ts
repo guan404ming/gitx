@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     type === "merged"
       ? `repo:${repo} author:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end}`
       : type === "opened"
-        ? `repo:${repo} author:${CONFIG.username} is:pr created:${start}..${end}`
+        ? `repo:${repo} author:${CONFIG.username} is:pr -is:merged created:${start}..${end}`
         : `repo:${repo} reviewed-by:${CONFIG.username} is:pr is:merged base:main merged:${start}..${end} -author:${CONFIG.username}`;
 
   const prs = await searchPRs(query);
